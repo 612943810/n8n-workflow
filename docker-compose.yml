@@ -4,6 +4,7 @@ services:
     restart: always
     ports:
       - "5678:5678"
+      - "5679:5679"
     env_file:
       - .env
     volumes:
@@ -15,14 +16,24 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./certs:/etc/nginx/certs
     depends_on:
       - n8n
-    extra_hosts:
-    - "n8n-workflow.local:127.0.0.1"
+
+  runners:
+    image: n8nio/runners:latest
+    restart: always
+    environment:
+      - N8N_RUNNERS_TASK_BROKER_URI=http://n8n:5679
+      - N8N_RUNNERS_AUTH_TOKEN=${N8N_RUNNERS_AUTH_TOKEN}
+      - N8N_RUNNERS_LOGS_LEVEL=info
+    volumes:
+      - runners_data:/home/node/.n8n
+    depends_on:
+      - n8n
 
 volumes:
   n8n_data:
+  runners_data:
